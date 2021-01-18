@@ -1,0 +1,14 @@
+[
+  {
+    "name": "base",
+    "type": "text"
+  },
+  {
+    "name": "target",
+    "type": "text"
+  },
+  {
+    "name": "price",
+    "type": "number"
+  }
+]

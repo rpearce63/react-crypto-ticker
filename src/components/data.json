@@ -1,0 +1,12 @@
+{
+  "ticker": {
+    "base": "XRP",
+    "target": "USD",
+    "price": "0.18013332",
+    "volume": "5312354175.51809978",
+    "change": "0.00458054"
+  },
+  "timestamp": 1609258923,
+  "success": true,
+  "error": ""
+}
