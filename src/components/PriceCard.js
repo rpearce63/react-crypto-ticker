@@ -11,11 +11,13 @@ const PriceCard = ({ value, src, header, label, balance }) => {
         <img src={src} alt={src} className="img-responsive float-right" />
         <h6 className="card-title mb-4 ">{header} </h6>
 
-        <h3 className="mb-1 text-primary">${val}</h3>
+        <h3 className="mb-1 text-primary">${val.toFixed(4)}</h3>
         <p className="card-text">
           <small className="text-muted">{label}</small>
         </p>
-        <h6>{balance}</h6>
+        <h6>
+          {balance} - {balance && (balance * value).toFixed(2)}
+        </h6>
       </div>
     </div>
   );

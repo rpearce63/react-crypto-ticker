@@ -14,11 +14,11 @@ class App extends Component {
         <Header branding="Real-Time Cryptocurrency Dashboard" />
         <div className="container">
           <Switch>
-            <Route exact path="/single">
-              <Body />
-            </Route>
-            <Route exact path="/dual">
+            <Route exact path={["/", "/dual"]}>
               <BodyWSS />
+            </Route>
+            <Route path="/single">
+              <Body />
             </Route>
           </Switch>
         </div>

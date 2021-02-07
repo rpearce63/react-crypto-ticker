@@ -16,11 +16,11 @@ export const getAccounts = () => {
       }
 
       const balances = accounts
-        ? accounts.map(a => {
+        ? accounts.map((a) => {
             //console.log(a.currency, a.native_balance);
             return {
               type: a.currency,
-              balance: a.native_balance.amount,
+              balance: a.balance.amount,
             };
           })
         : [];

@@ -17,6 +17,7 @@ import moment from "moment";
 import dayjs from "dayjs";
 import Duration from "dayjs/plugin/duration";
 import { getAccounts } from "./coinbase.api";
+
 dayjs.extend(Duration);
 require("log-timestamp")(function () {
   return `[${dayjs().format("YYYY-MM-DD HH:mm:ss")}]`;
@@ -32,9 +33,11 @@ const BodyWSS = () => {
   const [btc, setBtc] = useState(0);
   const [xrp, setXrp] = useState(0);
   const [eth, setEth] = useState(0);
-  const [ltc, setLtc] = useState(0);
-  const [values, setValues] = useState({ BTC: 0.0, ETH: 0.0 });
+  const [doge, setDoge] = useState(0);
+  const [balances, setBalances] = useState({ BTC: 0.0, ETH: 0.0 });
   const [showChart, toggleChart] = useState(false);
+
+  //const [usd, setUsd] = useState(0);
 
   const dataSource = useRef({
     chart: {
@@ -45,7 +48,7 @@ const BodyWSS = () => {
       numberPrefix: "$",
       refreshinterval: "1",
       slantLabels: "1",
-      numdisplaysets: "3600",
+      numdisplaysets: "7200",
       showLabels: false,
       labeldisplay: "rotate",
       showValues: "0",
@@ -96,10 +99,12 @@ const BodyWSS = () => {
   };
 
   const fetchAcountBalances = useCallback(async () => {
+    console.log("getting account balances");
     try {
-      const balances = await getAccounts();
-      setValues(
-        balances.reduce(
+      const acctBalances = await getAccounts();
+
+      setBalances(
+        acctBalances.reduce(
           (valuesObj, item) => ({
             ...valuesObj,
             [item.type]: parseFloat(item.balance),
@@ -118,20 +123,19 @@ const BodyWSS = () => {
     fetchAcountBalances();
     const refreshInterval = setInterval(() => {
       fetchAcountBalances();
-    }, 60000);
+    }, dayjs.duration(1, "hours").asMilliseconds());
     return () => {
       //console.log("clearing refreshInterval");
       clearInterval(refreshInterval);
     };
   }, [fetchAcountBalances]);
 
-  const processMsg = msgData => {
+  const processMsg = (msgData) => {
     const data = JSON.parse(msgData);
-
     data.bitcoin && setBtc(parseFloat(data.bitcoin));
     data.xrp && setXrp(parseFloat(data.xrp));
     data.ethereum && setEth(parseFloat(data.ethereum));
-    data.litecoin && setLtc(parseFloat(data.litecoin));
+    data.dogecoin && setDoge(parseFloat(data.dogecoin));
   };
 
   const updateDataSource = useCallback(() => {
@@ -147,6 +151,7 @@ const BodyWSS = () => {
     let x_axis = clientDateTime();
     let y_axis1 = eth;
     let y_axis2 = btc;
+
     updateDataSource();
     showChart || toggleChart(true);
 
@@ -158,7 +163,7 @@ const BodyWSS = () => {
 
   const startWs = useCallback(() => {
     ws.current = new WebSocket(
-      "wss://ws.coincap.io/prices?assets=bitcoin,ethereum,xrp,litecoin"
+      "wss://ws.coincap.io/prices?assets=bitcoin,ethereum,xrp,dogecoin"
     );
     ws.current.onopen = () => {
       startTime = dayjs();
@@ -174,7 +179,7 @@ const BodyWSS = () => {
         ws.readyState === WebSocket.Closed && startWs();
       }, 2000);
     };
-    ws.current.onmessage = msg => {
+    ws.current.onmessage = (msg) => {
       processMsg(msg.data);
     };
   }, []);
@@ -184,17 +189,32 @@ const BodyWSS = () => {
     return () => ws.current.close();
   }, [startWs]);
 
-  const getChartRef = chart => {
+  const getChartRef = (chart) => {
     //console.log("getting new chartRef");
     chartRef = chart;
   };
 
+  const totalBalance = () => {
+    return Object.keys(balances)
+      .reduce((total, k) => {
+        let value = 0;
+        try {
+          value = eval(k.toLowerCase());
+        } catch (e) {
+          value = 0;
+        }
+        return total + balances[k] * value;
+      }, 0)
+      .toFixed(2);
+
+    // return Object.values(values)
+    //   .reduce((total, v) => total + v)
+    //   .toFixed(2);
+  };
   return (
     <div className="row mt-5 mt-xs-4">
       <div className="header">
-        <div className="balance">
-          Balance: {(values.BTC + values.ETH).toFixed(2)}
-        </div>
+        <div className="balance">Balance: {totalBalance()}</div>
         {startTime && (
           <div className="up-time">
             Uptime: {getElapsedTime(dayjs.duration(dayjs().diff(startTime)))}
@@ -210,7 +230,7 @@ const BodyWSS = () => {
             alt="fireSpot"
             label="(Price in USD)"
             value={btc}
-            balance={values.BTC}
+            balance={balances.BTC}
           />
           <PriceCard
             header="Ripple(XRP)"
@@ -225,14 +245,14 @@ const BodyWSS = () => {
             alt="fireSpot"
             label="(Price in USD)"
             value={eth}
-            balance={values.ETH}
+            balance={balances.ETH}
           />
           <PriceCard
-            header="Litecoin(LTC)"
-            src={"/ethereum.png"}
+            header="DogeCoin"
+            src={"/doge.png"}
             alt="fireSpot"
             label="(Price in USD)"
-            value={ltc}
+            value={doge}
           />
         </div>
       </div>
