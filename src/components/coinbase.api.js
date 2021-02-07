@@ -3,8 +3,8 @@ require("log-timestamp");
 
 export const getAccounts = () => {
   const client = new Client({
-    apiKey: "65ALMM3MZnBLj3LF",
-    apiSecret: "mTbqDJF6xix5yiOz0G74Qo5TA6v0KLIU",
+    apiKey: "",
+    apiSecret: "",
     strictSSL: false,
   });
 
